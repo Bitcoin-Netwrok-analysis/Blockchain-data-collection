@@ -29,46 +29,41 @@ for i in range(n):
     for j in response:
         block_hashes.append(j["hash"])
         
-# preparing lists which will be written in the files
-input_list = []
-output_list = []
 
 count = 0
 total = 0
 error = 0
-for i in block_hashes:
-    response = requests.get(f'https://blockchain.info/rawblock/{i}').json()["tx"][1:] #transactions list
-    for j in response: # particular transactions
-        for k in j["inputs"]:
-            if "addr" in k["prev_out"]:
-                temp_input = [count]
-                temp_input.append(k["prev_out"]["addr"])
-                temp_input.append(k["prev_out"]["value"])
-                input_list.append(temp_input)
-            else:
-                error +=1
-            total+=1
-        for k in j["out"]:
-            if "addr" in k:
-                temp_out = [count]
-                temp_out.append(k["addr"])
-                temp_out.append(k["value"])
-                output_list.append(temp_out)
-            else:
-                error+=1
-            total+=1
-        count += 1
-    print(error/total)
 
 # file names where we will store processed data
-input_file = 'input1.csv'
-output_file = 'output1.csv'
+input_file = 'input.csv'
+output_file = 'output.csv'
 
-# writing csv files
-with open(input_file,'w') as inp:
-    with open(output_file,'w') as out:
+with open(input_file,mode = 'a',newline = '') as inp:
+    with open(output_file,mode = 'a', newline = '') as out:
         csvwriter1 = csv.writer(inp)
         csvwriter2 = csv.writer(out)
         
-        csvwriter1.writerows(input_list)
-        csvwriter2.writerows(output_list)
+
+        for i in block_hashes:
+            response = requests.get(f'https://blockchain.info/rawblock/{i}').json()["tx"][1:] #transactions list
+            for j in response: # particular transactions
+                for k in j["inputs"]:
+                    if "addr" in k["prev_out"]:
+                        temp_input = [count]
+                        temp_input.append(k["prev_out"]["addr"])
+                        temp_input.append(k["prev_out"]["value"])
+                        csvwriter1.writerow(temp_input)
+                    else:
+                        error +=1
+                    total+=1
+                for k in j["out"]:
+                    if "addr" in k:
+                        temp_out = [count]
+                        temp_out.append(k["addr"])
+                        temp_out.append(k["value"])
+                        csvwriter2.writerow(temp_out)
+                    else:
+                        error+=1
+                    total+=1
+                count += 1
+            print(error/total)
